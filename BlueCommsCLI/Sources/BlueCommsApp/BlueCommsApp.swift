@@ -41,13 +41,16 @@ struct BlueCommsMacApp: App {
     var body: some Scene {
         WindowGroup("BlueComms") {
             if let launchError {
-                Text("BlueComms could not start\n\(launchError)")
-                    .padding(32)
-                    .frame(minWidth: 520, minHeight: 240)
+                ContentUnavailableView(
+                    "BlueComms Could Not Start",
+                    systemImage: "exclamationmark.triangle",
+                    description: Text(launchError)
+                )
+                .frame(minWidth: 520, minHeight: 240)
             } else {
                 ContentView()
                     .environmentObject(store)
-                    .frame(minWidth: 820, minHeight: 520)
+                    .frame(minWidth: 720, minHeight: 480)
                     .onAppear {
                         bringForward()
                         // After the window exists so launch stays fast. start() is once-only.
