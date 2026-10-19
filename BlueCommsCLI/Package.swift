@@ -3,8 +3,9 @@
 //  Package.swift
 //
 //  Why this file exists:
-//    SwiftPM manifest. One package, four targets:
+//    SwiftPM manifest. One package, five targets:
 //      BlueCommsCore     — framing, crypto, Bonjour/AWDL, files (the radio)
+//      BlueCommsChat     — ChatStore: UI state shared by the Mac and iOS apps
 //      BlueCommsCLI      — terminal
 //      BlueCommsApp      — Mac window
 //      BlueCommsSelfTest — XCTest is missing from Command Line Tools, so a
@@ -13,6 +14,9 @@
 //  Info.plist is linked into the two user binaries (`-sectcreate __TEXT
 //  __info_plist`) so macOS Local Network / Bonjour prompts work. Without
 //  those keys, browse stays empty even with Wi-Fi on.
+//
+//  The iOS app (../iOS) is an Xcode project that links the BlueCommsCore and
+//  BlueCommsChat library products from this package by local path.
 //
 
 import Foundation
@@ -24,10 +28,21 @@ let appInfoPlistPath = packageDirectory.appendingPathComponent("Sources/BlueComm
 
 let package = Package(
     name: "BlueCommsCLI",
-    platforms: [.macOS(.v14)],
+    platforms: [.macOS(.v14), .iOS(.v17)],
+    products: [
+        .library(name: "BlueCommsCore", targets: ["BlueCommsCore"]),
+        .library(name: "BlueCommsChat", targets: ["BlueCommsChat"]),
+        .executable(name: "BlueCommsCLI", targets: ["BlueCommsCLI"]),
+        .executable(name: "BlueCommsApp", targets: ["BlueCommsApp"]),
+        .executable(name: "BlueCommsSelfTest", targets: ["BlueCommsSelfTest"]),
+    ],
     targets: [
         .target(
             name: "BlueCommsCore"
+        ),
+        .target(
+            name: "BlueCommsChat",
+            dependencies: ["BlueCommsCore"]
         ),
         .executableTarget(
             name: "BlueCommsCLI",
@@ -44,7 +59,7 @@ let package = Package(
         ),
         .executableTarget(
             name: "BlueCommsApp",
-            dependencies: ["BlueCommsCore"],
+            dependencies: ["BlueCommsCore", "BlueCommsChat"],
             exclude: ["Info.plist"],
             linkerSettings: [
                 .unsafeFlags([

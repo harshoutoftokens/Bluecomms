@@ -13,15 +13,20 @@
 //
 //  Computer name comes from SCDynamicStore. Host.current() can hang the
 //  main thread for seconds (blank window + CLI that never printed) — PR #6.
+//  iOS has no SCDynamicStore and only reports "iPhone", so the iOS app passes
+//  the name the user typed in Settings instead.
 //  Bonjour names are 63 bytes max, so we append a short id and truncate.
 //
 
 import CryptoKit
 import Foundation
+#if os(macOS)
 import SystemConfiguration
+#endif
 
 /// Instant computer name. Do not use `Host.current()` — it can hang the main thread.
 public func localComputerName() -> String {
+    #if os(macOS)
     if let name = SCDynamicStoreCopyComputerName(nil, nil) as String? {
         let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmed.isEmpty { return trimmed }
@@ -30,6 +35,9 @@ public func localComputerName() -> String {
         .replacingOccurrences(of: ".local", with: "")
         .replacingOccurrences(of: ".lan", with: "")
     return host.isEmpty ? "Mac" : host
+    #else
+    return "iPhone"
+    #endif
 }
 
 /// Persistent device id + X25519 key in ~/.bluecomms (or a test directory).
@@ -69,14 +77,22 @@ public enum TOFUResult: Equatable, Sendable {
 
 public struct IdentityStore: Sendable {
     public let directory: URL
+    /// Name shown to peers. nil = ask the OS (see localComputerName).
+    public let displayName: String?
 
-    public init(directory: URL) {
+    public init(directory: URL, displayName: String? = nil) {
         self.directory = directory
+        self.displayName = displayName
     }
 
+    /// ~/.bluecomms on the Mac. iOS has no home folder, so Application Support.
     public static var defaultDirectory: URL {
+        #if os(macOS)
         FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent(".bluecomms", isDirectory: true)
+        #else
+        URL.applicationSupportDirectory.appendingPathComponent("BlueComms", isDirectory: true)
+        #endif
     }
 
     /// Read existing files, or create them on first launch.
@@ -84,7 +100,8 @@ public struct IdentityStore: Sendable {
         try ensureDirectory()
         let id = try loadOrCreateDeviceID()
         let privateKey = try loadOrCreatePrivateKey()
-        let displayName = localComputerName()
+        let displayName = (self.displayName ?? localComputerName())
+            .trimmingCharacters(in: .whitespacesAndNewlines)
         return DeviceIdentity(
             id: id,
             displayName: displayName.isEmpty ? "Unknown Mac" : displayName,

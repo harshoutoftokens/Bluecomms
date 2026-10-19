@@ -9,6 +9,7 @@
 //
 
 import AppKit
+import BlueCommsChat
 import CoreGraphics
 import ImageIO
 import UniformTypeIdentifiers
@@ -24,5 +25,17 @@ enum ScreenGrab {
         }
         CGImageDestinationAddImage(dest, image, nil)
         return CGImageDestinationFinalize(dest) ? url : nil
+    }
+}
+
+extension ChatStore {
+    /// Capture the main display to /tmp, then send it as a normal file. Mac only,
+    /// so it lives here rather than in the shared BlueCommsChat module.
+    func sendScreenshot() {
+        guard let url = ScreenGrab.savePNG() else {
+            statusLine = "Could not capture the screen. Grant Screen Recording if asked."
+            return
+        }
+        sendFile(url: url)
     }
 }

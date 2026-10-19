@@ -181,9 +181,14 @@ public func sanitizeFileName(_ raw: String) -> String {
     return trimmed.isEmpty ? "file" : trimmed
 }
 
+/// ~/Downloads/BlueComms on the Mac. On iOS, Documents/BlueComms so it shows in Files.
 func incomingInboxURL() -> URL {
+    #if os(macOS)
     FileManager.default.homeDirectoryForCurrentUser
         .appendingPathComponent("Downloads/BlueComms", isDirectory: true)
+    #else
+    URL.documentsDirectory.appendingPathComponent("BlueComms", isDirectory: true)
+    #endif
 }
 
 /// If "photo.png" exists, write "photo 2.png" instead of overwriting.
