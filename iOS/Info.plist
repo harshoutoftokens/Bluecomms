@@ -1,23 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!--
-  Merged with the keys Xcode generates (GENERATE_INFOPLIST_FILE = YES).
-  NSLocalNetworkUsageDescription + NSBonjourServices are required or iOS
-  silently blocks Bonjour and the Nearby list stays empty — same as the Mac.
-  UIFileSharingEnabled + LSSupportsOpeningDocumentsInPlace make
-  Documents/BlueComms (received files) visible in the Files app.
--->
 <plist version="1.0">
 <dict>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>BlueComms finds nearby iPhones and Macs over the local network and AWDL so you can chat without the internet.</string>
 	<key>NSBonjourServices</key>
 	<array>
 		<string>_bluecomms._tcp</string>
 	</array>
 	<key>UIFileSharingEnabled</key>
-	<true/>
-	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
 </dict>
 </plist>
